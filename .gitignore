@@ -203,3 +203,4 @@ webpack-stats.json
 .vscode
 
 docker-compose.prod.yml
+doccano_log.out
