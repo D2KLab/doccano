@@ -27,7 +27,7 @@
           no-gutters
           class="d-none d-sm-flex"
         >
-          <v-col>
+          <v-col cols="12" md="8">
             <approve-button
               v-if="canViewApproveButton"
               :approved="approved"
@@ -37,9 +37,10 @@
               v-model="filterOption"
             />
             <guideline-button />
+            <span style="padding-left: 20px;">{{ currentDoc.meta }}</span>
           </v-col>
-          <v-spacer />
-          <v-col>
+          <!--<v-spacer />-->
+          <v-col cols="12" md="4" justify="right">
             <pagination
               v-model="page"
               :length="total"
@@ -47,15 +48,16 @@
           </v-col>
         </v-row>
         <v-row justify="center">
-          <v-col cols="12" md="9">
+          <!--<v-col cols="12" md="9">-->
+          <v-col cols="12" md="12">
             <nuxt />
           </v-col>
-          <v-col cols="12" md="3">
+          <!--<v-col cols="12" md="3">
             <metadata-box
               v-if="currentDoc && !loading"
               :metadata="JSON.parse(currentDoc.meta)"
             />
-          </v-col>
+          </v-col>-->
         </v-row>
       </v-container>
     </v-main>
@@ -72,7 +74,7 @@
 import { mapActions, mapGetters, mapState, mapMutations } from 'vuex'
 import BottomNavigator from '@/components/containers/annotation/BottomNavigator'
 import GuidelineButton from '@/components/containers/annotation/GuidelineButton'
-import MetadataBox from '@/components/organisms/annotation/MetadataBox'
+//import MetadataBox from '@/components/organisms/annotation/MetadataBox'
 import FilterButton from '@/components/containers/annotation/FilterButton'
 import ApproveButton from '@/components/containers/annotation/ApproveButton'
 import Pagination from '~/components/containers/annotation/Pagination'
@@ -89,8 +91,8 @@ export default {
     Pagination,
     GuidelineButton,
     FilterButton,
-    ApproveButton,
-    MetadataBox
+    ApproveButton//,
+    //MetadataBox
   },
 
   fetch() {

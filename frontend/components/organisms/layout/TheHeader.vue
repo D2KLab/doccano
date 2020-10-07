@@ -36,7 +36,7 @@
     >
       Projects
     </v-btn>
-    <v-menu
+    <!--<v-menu
       v-if="!isAuthenticated"
       open-on-hover
       offset-y
@@ -59,7 +59,7 @@
           <v-list-item-title>{{ item.title }}</v-list-item-title>
         </v-list-item>
       </v-list>
-    </v-menu>
+    </v-menu>-->
     <v-btn
       v-if="!isAuthenticated"
       outlined
