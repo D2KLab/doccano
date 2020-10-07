@@ -201,3 +201,5 @@ bundle/
 webpack-stats.json
 
 .vscode
+
+docker-compose.prod.yml
