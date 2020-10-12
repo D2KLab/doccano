@@ -22,6 +22,8 @@ echo "Initializing database"
 "${venv}/bin/python" "${app}/manage.py" migrate
 "${venv}/bin/python" "${app}/manage.py" create_roles
 
+#"${venv}/bin/python" "${app}/manage.py" test api.tests
+
 if [[ -n "${ADMIN_USERNAME}" ]] && [[ -n "${ADMIN_PASSWORD}" ]] && [[ -n "${ADMIN_EMAIL}" ]]; then
   "${venv}/bin/python" "${app}/manage.py" create_admin \
     --username "${ADMIN_USERNAME}" \
@@ -30,6 +32,11 @@ if [[ -n "${ADMIN_USERNAME}" ]] && [[ -n "${ADMIN_PASSWORD}" ]] && [[ -n "${ADMI
     --noinput \
   || true
 fi
+
+#echo "running script"
+#"${venv}/bin/python" "${app}/test_api.py" 
+echo "running script through sshell"
+"${venv}/bin/python" "${app}/manage.py" shell -i python < "/src/app/test_api.py"
 
 echo "Starting django"
 "${venv}/bin/python" -u "${app}/manage.py" runserver "$@"
