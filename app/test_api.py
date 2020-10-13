@@ -6,9 +6,10 @@ datas = {"text": "WHO DOES SPAIN OFFER INTERNATIONAL PROTECTION TO? - To refugee
 
 def document_exists(meta):
     try:
-        Document.objects.get(meta=meta)
-        return Document.objects.get(meta=meta)
+        documents = Document.objects.filter(meta=meta)
+        return len(documents) > 0
     except Exception as e:
+        print(e)
         return False
 
 def create_document(text, meta, project):
