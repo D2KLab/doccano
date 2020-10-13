@@ -436,3 +436,16 @@ class LabelUploadAPI(APIView):
         except IntegrityError:
             content = {'error': 'IntegrityError: you cannot create a label with same name or shortkey.'}
             return Response(content, status=status.HTTP_400_BAD_REQUEST)
+
+class DocumentAnnotation(APIView):
+    # TODO: INSERT AUTHENTICATION MANAGEMENT
+    permission_classes = []
+
+    def get(self, request, *args, **kwargs):
+        return Response({'status': 'green'})
+
+    def post(self, request, *args, **kwargs):
+        print(request)
+        print(args)
+        print(kwargs)
+        return Response({'status': 'red'})

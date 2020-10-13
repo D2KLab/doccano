@@ -35,8 +35,8 @@ fi
 
 #echo "running script"
 #"${venv}/bin/python" "${app}/test_api.py" 
-echo "running script through sshell"
-"${venv}/bin/python" "${app}/manage.py" shell -i python < "/src/app/test_api.py"
+#echo "Starting Flask"
+#"${venv}/bin/python" "${app}/manage.py" shell -i python < "/src/app/api/rest.py" &
 
 echo "Starting django"
 "${venv}/bin/python" -u "${app}/manage.py" runserver "$@"
