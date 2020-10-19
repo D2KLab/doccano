@@ -74,7 +74,7 @@
 import { mapActions, mapGetters, mapState, mapMutations } from 'vuex'
 import BottomNavigator from '@/components/containers/annotation/BottomNavigator'
 import GuidelineButton from '@/components/containers/annotation/GuidelineButton'
-//import MetadataBox from '@/components/organisms/annotation/MetadataBox'
+// import MetadataBox from '@/components/organisms/annotation/MetadataBox'
 import FilterButton from '@/components/containers/annotation/FilterButton'
 import ApproveButton from '@/components/containers/annotation/ApproveButton'
 import Pagination from '~/components/containers/annotation/Pagination'
@@ -92,7 +92,7 @@ export default {
     GuidelineButton,
     FilterButton,
     ApproveButton//,
-    //MetadataBox
+    // MetadataBox
   },
 
   fetch() {

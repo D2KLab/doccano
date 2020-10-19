@@ -445,7 +445,5 @@ class DocumentAnnotation(APIView):
         return Response({'status': 'green'})
 
     def post(self, request, *args, **kwargs):
-        print(request)
-        print(args)
-        print(kwargs)
-        return Response({'status': 'red'})
+        data = request.data
+        return Response(data['data'])
