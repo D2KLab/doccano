@@ -11,6 +11,7 @@ from .views import TextUploadAPI, TextDownloadAPI, CloudUploadAPI
 from .views import StatisticsAPI
 from .views import RoleMappingList, RoleMappingDetail, Roles
 from .views import DocumentAnnotation
+from .views import PathwayGeneration
 
 urlpatterns = [
     path('health', Health.as_view(), name='health'),
@@ -49,6 +50,7 @@ urlpatterns = [
     path('projects/<int:project_id>/roles/<int:rolemapping_id>',
          RoleMappingDetail.as_view(), name='rolemapping_detail'),
     path('annotate', DocumentAnnotation.as_view(), name='annotate'),
+    path('generate', PathwayGeneration.as_view(), name='generate'),
 
 ]
 

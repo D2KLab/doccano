@@ -26,6 +26,16 @@ from .utils import CSVParser, ExcelParser, JSONParser, PlainTextParser, CoNLLPar
 from .utils import JSONLRenderer
 from .utils import JSONPainter, CSVPainter
 
+#from pgr import run
+from pgr.doc2txt import doc2txt
+from pgr.transner import Transner
+from pgr.tools import aggregator, annotator, generator
+
+import os
+
+from django.core.files.storage import FileSystemStorage, default_storage
+from django.core.files.base import ContentFile
+
 IsInProjectReadOnlyOrAdmin = (IsAnnotatorAndReadOnly | IsAnnotationApproverAndReadOnly | IsProjectAdmin)
 IsInProjectOrAdmin = (IsAnnotator | IsAnnotationApprover | IsProjectAdmin)
 
@@ -441,8 +451,31 @@ class DocumentAnnotation(APIView):
     # TODO: INSERT AUTHENTICATION MANAGEMENT
     permission_classes = []
 
-    def get(self, request, *args, **kwargs):
-        return Response({'status': 'green'})
+    #def get(self, request, *args, **kwargs):
+    #    return Response({'status': 'green'})
+
+    def post(self, request, *args, **kwargs):
+        
+        file = request.FILES.getlist("file")[0]
+        
+        path = default_storage.save('uploads/' + file.name, ContentFile(file.read()))
+
+        converted_file = doc2txt.convert_to_txt(path)
+
+
+
+        #print(request)
+        #converted_file = doc2txt.convert_to_txt(data['file'])
+        #print(converted_file)
+        #string_result_ner = run.run(data['file'], generate_pathway=False, pilot=infos['pilot'], service=infos['service'])
+        return Response('ok')
+
+class PathwayGeneration(APIView):
+    # TODO: INSERT AUTHENTICATION MANAGEMENT
+    permission_classes = []
+
+    #def get(self, request, *args, **kwargs):
+    #    return Response({'status': 'green'})
 
     def post(self, request, *args, **kwargs):
         data = request.data

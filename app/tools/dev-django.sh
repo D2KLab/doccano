@@ -33,10 +33,8 @@ if [[ -n "${ADMIN_USERNAME}" ]] && [[ -n "${ADMIN_PASSWORD}" ]] && [[ -n "${ADMI
   || true
 fi
 
-#echo "running script"
-#"${venv}/bin/python" "${app}/test_api.py" 
-#echo "Starting Flask"
-#"${venv}/bin/python" "${app}/manage.py" shell -i python < "/src/app/api/rest.py" &
+apt-get install -y python-dev libxml2-dev libxslt1-dev antiword unrtf poppler-utils tesseract-ocr \
+flac ffmpeg lame libmad0 libsox-fmt-mp3 sox libjpeg-dev swig libpulse-dev
 
 echo "Starting django"
 "${venv}/bin/python" -u "${app}/manage.py" runserver "$@"
