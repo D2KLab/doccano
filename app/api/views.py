@@ -18,15 +18,16 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework_csv.renderers import CSVRenderer
 
 from .filters import DocumentFilter
-from .models import Project, Label, Document, RoleMapping, Role
+from .models import Project, Label, Document, RoleMapping, Role, SequenceAnnotation, Seq2seqAnnotation
 from .permissions import IsProjectAdmin, IsAnnotatorAndReadOnly, IsAnnotator, IsAnnotationApproverAndReadOnly, IsOwnAnnotation, IsAnnotationApprover
 from .serializers import ProjectSerializer, LabelSerializer, DocumentSerializer, UserSerializer, ApproverSerializer
 from .serializers import ProjectPolymorphicSerializer, RoleMappingSerializer, RoleSerializer
 from .utils import CSVParser, ExcelParser, JSONParser, PlainTextParser, CoNLLParser, AudioParser, iterable_to_io
 from .utils import JSONLRenderer
 from .utils import JSONPainter, CSVPainter
+from .utils import to_list
+from .utils import pathway_to_doccano
 
-#from pgr import run
 from pgr.doc2txt import doc2txt
 from pgr.transner import Transner
 from pgr.tools import aggregator, annotator, generator
@@ -457,18 +458,63 @@ class DocumentAnnotation(APIView):
     def post(self, request, *args, **kwargs):
         
         file = request.FILES.getlist("file")[0]
-        
-        path = default_storage.save('uploads/' + file.name, ContentFile(file.read()))
 
-        converted_file = doc2txt.convert_to_txt(path)
+        infos = json.loads(request.data.getlist('data')[0])
 
+        pilot, service = infos['pilot'], infos['service']
+     
+        project = Project.objects.get(name='easyRights Annotated Documents')
 
+        document = document_exists(pilot + ' - ' + service + ' - ' + file.name)
 
-        #print(request)
-        #converted_file = doc2txt.convert_to_txt(data['file'])
-        #print(converted_file)
-        #string_result_ner = run.run(data['file'], generate_pathway=False, pilot=infos['pilot'], service=infos['service'])
-        return Response('ok')
+        if not document:
+            path = default_storage.save('uploads/' + file.name, ContentFile(file.read()))
+
+            converted_file = doc2txt.convert_to_txt(path)
+
+            sentence_list = to_list(converted_file)
+
+            ner_dict = annotate_transner(sentence_list)
+            #ner_dict = annotate_sutime(ner_dict)
+            
+            ner_dict = annotator.aggregate_dict(ner_dict)
+            
+            ner_dict = annotator.export_to_doccano(ner_dict, file.name, pilot, service, add_confidence=True)
+            
+            doc = Document()
+            doc.text = ner_dict['text']
+            doc.meta = ner_dict['meta']
+            doc.project = project
+
+            doc.save()
+
+            user = User.objects.get(pk=1)
+
+            for start_off, end_off, entity_type, prob in ner_dict['labels']:
+                label, created = Label.objects.get_or_create(text=entity_type, project=project)
+                annotation = SequenceAnnotation()
+                annotation.document = doc
+                annotation.label = label
+                annotation.start_offset = start_off
+                annotation.end_offset = end_off
+                annotation.user = user
+                annotation.prob = prob
+
+                annotation.save()
+        else:
+            annotations = SequenceAnnotation.objects.filter(document=document)
+
+            result_dict = {'text': '', 'labels': [], 'meta': ''}
+            result_dict['text'] = document.text
+            result_dict['meta'] = document.meta
+
+            for annotation in annotations:
+                label = annotation.label
+                result_dict['labels'].append([annotation.start_offset, annotation.end_offset, label.text, annotation.prob])
+
+            return Response(result_dict)
+
+        return Response(ner_dict)
 
 class PathwayGeneration(APIView):
     # TODO: INSERT AUTHENTICATION MANAGEMENT
@@ -478,5 +524,94 @@ class PathwayGeneration(APIView):
     #    return Response({'status': 'green'})
 
     def post(self, request, *args, **kwargs):
-        data = request.data
-        return Response(data['data'])
+
+        file = request.FILES.getlist("file")[0]
+
+        infos = json.loads(request.data.getlist('data')[0])
+
+        pilot, service = infos['pilot'], infos['service']
+
+        project = Project.objects.get(name='easyRights Pathway')
+
+        document = document_exists(pilot + ' - ' + service + ' - Where - ' + file.name)
+
+        if not document:
+            path = default_storage.save('uploads/' + file.name, ContentFile(file.read()))
+
+            converted_file = doc2txt.convert_to_txt(path)
+
+            sentence_list = to_list(converted_file)
+
+            ner_dict = annotate_transner(sentence_list)
+            #ner_dict = annotate_sutime(ner_dict)
+            ner_dict = annotator.aggregate_dict(ner_dict)
+            
+            aggregated_ner_dict = aggregator.aggregate_entities(ner_dict)
+
+            pathway = generator.generate(aggregated_ner_dict)
+            json_pathway = pathway.to_json(indent=4, orient='records')
+            pathway = pathway_to_doccano(json.loads(json_pathway), file.name, pilot, service)
+
+            for item in pathway:
+                doc = Document()
+                doc.text = item['text']
+                doc.meta = item['meta']
+                doc.project = project
+                doc.save()
+
+                user = User.objects.get(pk=1)
+
+                for element in item['labels']:
+                    annotation = Seq2seqAnnotation()
+                    annotation.text = element
+                    annotation.document = doc
+                    annotation.user = user
+
+                    annotation.save()
+
+            return Response(pathway)
+            
+        else:
+            documents = []
+            documents.append(Document.objects.get(meta=pilot + ' - ' + service + ' - Where - ' + file.name))
+            documents.append(Document.objects.get(meta=pilot + ' - ' + service + ' - When - ' + file.name))
+            documents.append(Document.objects.get(meta=pilot + ' - ' + service + ' - How - ' + file.name))
+
+            result_dict = []
+
+            for doc in documents:
+                annotations = Seq2seqAnnotation.objects.filter(document=doc)
+                element = {'text': doc.text, 'labels': [], 'meta': doc.meta}
+                for annotation in annotations:
+                    element['labels'].append(annotation.text)
+
+                result_dict.append(element)
+
+            return Response(result_dict)
+
+def annotate_transner(sentence_list):
+    model = Transner(pretrained_model='bert_uncased_base_easyrights_v0.1', use_cuda=False, cuda_device=2)
+    ner_dict = model.ner(sentence_list, apply_regex=True)
+    ner_dict = model.find_dates(ner_dict)
+    return ner_dict
+
+def annotate_sutime(ner_dict):
+    for item in ner_dict:
+        text = item['sentence']
+        jar_files = os.path.join('pysutime/', 'jars')
+        sutime_obj = sutime.SUTime(jars=jar_files, mark_time_ranges=True)
+
+        json = sutime_obj.parse(text)
+        
+        for item_sutime in json:
+            item['entities'].append({'type': 'TIME', 'value': item_sutime['text'], 'confidence': 0.8, 'offset': item_sutime['start']})
+
+    return ner_dict
+
+def document_exists(meta):
+    try:
+        document = Document.objects.get(meta=meta)
+        return document
+    except Exception as e:
+        print(e)
+        return None

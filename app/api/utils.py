@@ -5,6 +5,7 @@ import itertools
 import json
 import mimetypes
 import re
+import os
 from collections import defaultdict
 
 import conllu
@@ -552,3 +553,48 @@ class EncodedIO(io.RawIOBase):
         output, self._buffer = chunk[:l], chunk[l:]
         b[:len(output)] = output
         return len(output)
+
+def to_list(data):
+    element_list = [] # Make an empty list
+
+    for element in re.split('[.\n]', data):
+        stripped_element = element.strip()
+        if stripped_element != '':	    
+            element_list.append(stripped_element) #Append to list the striped element
+    
+    return element_list
+
+def pathway_to_doccano(json_pathway, path, pilot, service):
+    filename = os.path.splitext(path)[0]
+    pathway_jsonl = []
+    where_dict = {"text": "where", "labels": [], "meta": pilot + ' - ' + service + ' - Where - ' + os.path.basename(path)}
+    how_dict = {"text": "how", "labels": [], "meta": pilot + ' - ' + service + ' - How - ' + os.path.basename(path)}
+    when_dict = {"text": "when", "labels": [], "meta": pilot + ' - ' + service + ' - When - ' + os.path.basename(path)}
+
+    for entity in json_pathway:
+        if len(entity["entity"].strip()) > 0:
+            if entity["step"] == "where":
+                if entity["entity"].strip() not in where_dict["labels"]:
+                    where_dict["labels"].append(entity["entity"].strip())
+            elif entity["step"] == "how":
+                if entity["entity"].strip() not in how_dict["labels"]:
+                    how_dict["labels"].append(entity["entity"].strip())
+            elif entity["step"] == "when":
+                if entity["entity"].strip() not in when_dict["labels"]:
+                    when_dict["labels"].append(entity["entity"].strip())
+    
+    pathway_jsonl.append(where_dict)
+    pathway_jsonl.append(when_dict)
+    pathway_jsonl.append(how_dict)
+    file_out = open(filename + '_pathway.jsonl', 'w', encoding='utf-8')
+
+    return_string = ''
+
+    for element in pathway_jsonl:
+        string_element = str(json.dumps(element, ensure_ascii=False))
+        file_out.write(string_element)
+        file_out.write('\n')
+
+        return_string = return_string + string_element + '\n'
+
+    return pathway_jsonl
