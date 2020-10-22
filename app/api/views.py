@@ -476,10 +476,14 @@ class DocumentAnnotation(APIView):
 
             ner_dict = annotate_transner(sentence_list)
             #ner_dict = annotate_sutime(ner_dict)
+
+            
             
             ner_dict = annotator.aggregate_dict(ner_dict)
             
             ner_dict = annotator.export_to_doccano(ner_dict, file.name, pilot, service, add_confidence=True)
+
+            
             
             doc = Document()
             doc.text = ner_dict['text']
@@ -491,16 +495,18 @@ class DocumentAnnotation(APIView):
             user = User.objects.get(pk=1)
 
             for start_off, end_off, entity_type, prob in ner_dict['labels']:
-                label, created = Label.objects.get_or_create(text=entity_type, project=project)
-                annotation = SequenceAnnotation()
-                annotation.document = doc
-                annotation.label = label
-                annotation.start_offset = start_off
-                annotation.end_offset = end_off
-                annotation.user = user
-                annotation.prob = prob
+                try:
+                    label = Label.objects.get(text=entity_type, project=project)
+                except Exception as e:
+                    label = Label()
+                    label.text = entity_type
+                    label.project = project
+                    label.background_color = generate_color()
 
-                annotation.save()
+                    label.save()
+
+                annotation, created = SequenceAnnotation.objects.get_or_create(document=doc, label=label, start_offset=start_off, end_offset=end_off, user=user, prob=prob)
+
         else:
             annotations = SequenceAnnotation.objects.filter(document=document)
 
@@ -615,3 +621,8 @@ def document_exists(meta):
     except Exception as e:
         print(e)
         return None
+
+def generate_color():
+    import random
+    r = lambda: random.randint(0,255)
+    return '#{:02x}{:02x}{:02x}'.format(r(), r(), r())
