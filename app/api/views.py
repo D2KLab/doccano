@@ -476,15 +476,11 @@ class DocumentAnnotation(APIView):
 
             ner_dict = annotate_transner(sentence_list)
             #ner_dict = annotate_sutime(ner_dict)
-
-            
-            
+           
             ner_dict = annotator.aggregate_dict(ner_dict)
             
             ner_dict = annotator.export_to_doccano(ner_dict, file.name, pilot, service, add_confidence=True)
-
-            
-            
+         
             doc = Document()
             doc.text = ner_dict['text']
             doc.meta = ner_dict['meta']
@@ -596,7 +592,7 @@ class PathwayGeneration(APIView):
             return Response(result_dict)
 
 def annotate_transner(sentence_list):
-    model = Transner(pretrained_model='bert_uncased_base_easyrights_v0.1', use_cuda=False, cuda_device=2)
+    model = Transner(pretrained_model='bert_uncased_base_easyrights_v0.1', use_cuda=False, cuda_device=2, language_detection=True)
     ner_dict = model.ner(sentence_list, apply_regex=True)
     ner_dict = model.find_dates(ner_dict)
     return ner_dict
