@@ -1,4 +1,4 @@
-FROM alpine:3.9.6
+FROM ubuntu:20.04
 
 CMD ["python3"]
 
@@ -9,8 +9,7 @@ ENV PYTHONUNBUFFERED 1
 
 COPY . /app/
 
-RUN apk add -U --no-cache bash python3 python3-dev libpq postgresql-dev unixodbc-dev musl-dev g++ libffi-dev \
+RUN apt-get update && apt-get install python3 python3-dev python3-pip python3-psycopg2 unixodbc-dev musl-dev gcc libc-dev g++ libffi-dev -y -qq\
   && pip3 install --upgrade --no-cache-dir pip setuptools \
   && pip3 install --no-cache-dir -r requirements.txt \
-  && ln -s /usr/bin/python3 /usr/bin/python \
-  && apk del --no-cache python3-dev postgresql-dev unixodbc-dev musl-dev g++ libffi-dev
+  && ln -s /usr/bin/python3 /usr/bin/python 

@@ -26,7 +26,6 @@ furl==2.0.0
 gunicorn==19.9.0
 lockfile==0.12.2
 model-mommy==1.6.0
-psycopg2-binary==2.7.7
 pyexcel==0.5.14
 pyexcel-xlsx==0.5.7
 social-auth-app-django==4.0.0
@@ -63,7 +62,7 @@ python-dateutil
 pytz==2019.3
 PyYAML==5.3
 regex==2020.2.20
-s3transfer==0.3.3
+s3transfer
 sacremoses==0.0.38
 scikit-learn==0.22.2.post1
 scipy
@@ -72,8 +71,8 @@ seqeval==0.0.12
 simpletransformers
 six==1.14.0
 tensorboardX==2.0
+torch
 tokenizers
-torch==1.4.0
 tqdm
 transformers
 urllib3
@@ -85,3 +84,4 @@ jpype1
 sutime
 urlextract
 wget
+dateparser

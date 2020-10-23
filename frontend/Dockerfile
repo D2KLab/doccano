@@ -1,11 +1,11 @@
-FROM node:13.7-alpine
+FROM node:13.7
 
 WORKDIR /app
 
 COPY . /app/
 
-RUN apk add -U --no-cache git python3 make g++ \
+RUN apt-get update && apt-get install git python3 make g++ -y -qq \
   # && npm install -g yarn@latest \
   && yarn install \
   && yarn build \
-  && apk del --no-cache git make g++
+  && apt-get purge git make g++ -y -qq
