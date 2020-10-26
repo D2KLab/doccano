@@ -66,11 +66,8 @@ sacremoses==0.0.38
 seqeval==0.0.12
 simpletransformers
 six==1.14.0
-<<<<<<< HEAD
 tensorboardX==2.0
 torch
-=======
->>>>>>> e7bd20a83a0a442f2b4be48a308009e0d397ea22
 tokenizers
 tqdm
 transformers
