@@ -37,6 +37,9 @@ import os
 from django.core.files.storage import FileSystemStorage, default_storage
 from django.core.files.base import ContentFile
 
+import logging
+logger = logging.getLogger('django')
+
 IsInProjectReadOnlyOrAdmin = (IsAnnotatorAndReadOnly | IsAnnotationApproverAndReadOnly | IsProjectAdmin)
 IsInProjectOrAdmin = (IsAnnotator | IsAnnotationApprover | IsProjectAdmin)
 
@@ -471,12 +474,13 @@ class DocumentAnnotation(APIView):
             path = default_storage.save('uploads/' + file.name, ContentFile(file.read()))
 
             converted_file = doc2txt.convert_to_txt(path)
+            logger.info(msg='document converted')
 
             sentence_list = to_list(converted_file)
 
             ner_dict = annotate_transner(sentence_list)
             #ner_dict = annotate_sutime(ner_dict)
-           
+            logger.info('document annotated')
             ner_dict = annotator.aggregate_dict(ner_dict)
             
             ner_dict = annotator.export_to_doccano(ner_dict, file.name, pilot, service, add_confidence=True)
@@ -541,16 +545,19 @@ class PathwayGeneration(APIView):
             path = default_storage.save('uploads/' + file.name, ContentFile(file.read()))
 
             converted_file = doc2txt.convert_to_txt(path)
+            logger.info(msg='document converted')
 
             sentence_list = to_list(converted_file)
 
             ner_dict = annotate_transner(sentence_list)
+            logger.info('document annotated')
             #ner_dict = annotate_sutime(ner_dict)
             ner_dict = annotator.aggregate_dict(ner_dict)
             
             aggregated_ner_dict = aggregator.aggregate_entities(ner_dict)
 
             pathway = generator.generate(aggregated_ner_dict)
+            logger.info('pathway generated')
             json_pathway = pathway.to_json(indent=4, orient='records')
             pathway = pathway_to_doccano(json.loads(json_pathway), file.name, pilot, service)
 
