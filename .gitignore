@@ -201,3 +201,5 @@ bundle/
 webpack-stats.json
 
 .vscode
+
+doccano_log.out
